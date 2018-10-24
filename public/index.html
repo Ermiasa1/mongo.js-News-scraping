@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<!-- <link rel="stylesheet" type="text/css" href="./assets/css/style.css"> 	 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+   
+    h1, #head2{
+      margin-left: 25px;
+    }
+    button
+    {
+    background:rgba(7, 95, 153, 0.952);
+    color: white;
+    width: 80px;
+    height: 40px;
+    font-size: 16px;
+    border-radius: 12px;
+    }
+    button:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+    }
+    #listsNews{
+    width: 75%;
+    margin-left: 150px;
+    margin-right: 150px;
+    padding-top: 20px;
+    }
+    .box1 {
+    font-size: 16px; 
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-right: 25px;
+    }
+    .box1 .content { 
+    margin-top: 15px;
+    margin-right: 25px;
+    }
+    .sourceLink{
+    font-size: 15px;
+    color:blue;
+    }
+    .box1 .content h2 {
+    text-shadow: 10px 10px 5px grey;
+    }
+    .btnDisplay{
+    float: left;
+    width:40%;
+    }
+    .btnDelet{
+    float:right;
+    width:40%;
+    }
+    .commentDiv{
+    clear:right;
+    display: none;
+    }
+    .delBtnDisplay{
+    display:none;
+    }#comment {
+    width: 100%;
+    }
+    a {
+    color: black;
+    text-decoration: none;
+    }
+
+
+</style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-primary">
+	<div class="navbar-header">
+      <a href="/ScrapeNews"><h1 id="h1"> Scrape News </h1></a>
+	    <!-- <a href="/saveNews"><h3 id="h3"> Save News </h3></a> -->
+  </div> 
+</nav>
+<h2 id="head2">Legal News</h2>
+<div class="row" id="formSub">
+  <div class="col-sm-12">
+  	<div id="listsNews">       
+  </div>  	
+ </div>
+</div>
+<br>
+   
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+
+function getNews() {
+  $.ajax({
+    url: '/news'
+  }).then( 
+    function(data){
+      for(var story of data) {
+
+        var storyPageAsLink = $('<a>').attr('href','/story/' + story._id)
+          .addClass('link').attr('data-story-id', story._id);
+
+        var div = $('<div>').addClass('box1');
+
+        var div1 = $('<div>').addClass('content');
+        var h2 = $('<h2>').text(story.headline);
+        var p = $('<p>').text(story.summary);        
+        var d = $('<p>').text(story.date);        
+
+        div1.append(h2,p,d,);        
+
+        div.append(div1);
+        storyPageAsLink.append(div);
+        $('#listsNews').append(storyPageAsLink);  
+      }
+    },
+    function(jqXHR, textStatus,error){
+
+    }
+  )
+}
+
+ getNews();
+
+
+function getStory(id) {
+    $.ajax({
+      url: '/story/'+id
+    }).then( 
+      function(story){
+        console.log(story);
+        var div = $('<div>').addClass('box1');
+
+        var div1 = $('<div>').addClass('content');
+        var h2 = $('<h2>').text(story.headline);
+        var p = $('<p>').text(story.summary);        
+        var d = $('<p>').text(story.date);
+                 
+        div1.append(h2,p,d);        
+
+        var divsourceLink = $('<div>').addClass('sourceLink');      
+        var sourceLink = $("<a>").attr("href","https://www.law.com"+ story.link).text(story.link)
+        divsourceLink.append(sourceLink);
+
+        var div2 = $('<div>').addClass('comDelButtons');
+
+        var div3Btn =$('<div>').addClass('btnDelet');
+        var button = $('<button>').text('delet').attr({'id':'deletStoryBtn', 'data-story-id': id});
+        div3Btn.append(button);
+
+        var div2Btn =$('<div>').addClass('btnDisplay');
+        var button = $('<button>').text('comment').attr({'id':'commentDisBtn', 'data-story-id': id})
+        div2Btn.append(button); 
+        
+        div2.append(div2Btn,div3Btn);
+
+        var div3 = $('<div>').addClass('commentDiv');
+        var h2Comments = $('<h2>').text('Comments');
+        var textarea = $('<textarea>').attr({id: 'comment', placeholder: 'Write comment here'})
+        var button = $('<button>').text('Submit').attr({'id':'commentBtn', 'data-story-id': id})
+        div3.append(h2Comments,textarea,button);
+
+        var div4 = $('<div>').addClass('delBtnDisplay');
+        if (story.comments != undefined) {
+          for(var comment of story.comments) {           
+            var userPara = $('<p>').text(comment.user).addClass('comment-owner');
+            var commentPara = $('<p>').text(comment.comment);
+            var delBtn = $('<button>').text('Delete').addClass('delBtn')
+              .attr({'data-story-id':id, 'data-comment-id':comment._id});
+            div4.append(userPara,commentPara,delBtn);
+          }
+        }
+        div.append(div1);
+        $('#listsNews').empty().append(div,divsourceLink,div2,div3,div4);  
+      },
+      function(jqXHR, textStatus,error){
+      })
+  };
+  // getStory(id);
+
+    function saveComment(id, comment) {
+    $.ajax({
+      url: '/comment/'+id,
+      method: 'POST',
+      data: {comment: comment}
+    }).then( 
+      function(story){        
+        getStory(id);
+      },
+      function(jqXHR, textStatus,error){
+      })
+  };
+  function deleteComment(storyId, commentId) {
+    $.ajax({
+      url: '/comment/'+storyId,
+      method: 'DELETE',
+      data: {commentId: commentId}
+    }).then( 
+      function(story){        
+        getStory(storyId);
+      },
+      function(jqXHR, textStatus,errorThrown){
+      })
+  };
+  
+ 
+  $(document).on('click', '.link', function(event){
+    event.preventDefault()
+    getStory( this.dataset.storyId);    
+  });
+
+  $(document).on('click', '.btnDisplay', function(event){
+    event.preventDefault();
+    $(".commentDiv").show();
+    $(".delBtnDisplay").show();
+    $("#commentDisBtn").hide();
+  });
+
+  $(document).on('click', '#commentBtn', function(event){
+    event.preventDefault();
+    saveComment(this.dataset.storyId, $('#comment').val());  
+  })
+  $(document).on('click', '.delBtn', function(event){
+    event.preventDefault();
+    deleteComment(this.dataset.storyId, this.dataset.commentId);   
+  })
+
+
+$(document).on("click", "#deletStoryBtn", function() {
+  // Save the p tag that encloses the button
+  var selected = $(this).attr("data-story-id");
+  console.log(selected);
+  // Make an AJAX GET request to delete the specific note
+  // this uses the data-id of the p-tag, which is linked to the specific note
+  $.ajax({
+    type: "GET",
+    url: "/delete/"+selected,
+    success: function(response) {
+    getNews();
+    }
+  });
+});
+
+</script>
+
+ <footer class="footer">
+  <div class="container" style="position: fixed; bottom: 0;
+  left: 0;width: 100%;  height: 30px;  background-color:rgba(7, 95, 153, 0.952);">
+    <p class="text-muted" style="text-align: center;color:  #ffffff;">  </p>
+  </div>
+</footer>
+
+</body>
+</html>
